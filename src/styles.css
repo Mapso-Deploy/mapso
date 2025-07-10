@@ -1841,7 +1841,235 @@ z-index: 1;
         /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
     }
 
-    .cart-button {
+/* Password Gate Styles - TEMPORARY (Remove when launching) */
+.password-gate-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-image: url('../src/clear-pale-cement-stucco-pattern.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 9999 !important;
+  font-family: PragmaticaW01-ExtendedBook !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.password-gate-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 10000 !important;
+}
+
+.password-gate-box {
+  /* EXACT navbar styling match */
+  position: relative !important;
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  
+  /* Password gate styling */
+  padding: 50px 40px;
+  max-width: 480px;
+  width: calc(100vw - 60px);
+  text-align: center;
+  animation: fadeIn 1s ease-in-out;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.password-gate-box.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+.password-gate-header h2 {
+  font-family: PragmaticaW01-ExtendedBook !important;
+  color: #333;
+  margin-bottom: 12px;
+  font-size: 28px;
+  font-weight: normal;
+  letter-spacing: 0.02em;
+}
+
+.password-gate-header p {
+  color: #666;
+  margin-bottom: 35px;
+  font-size: 16px;
+  font-family: PragmaticaW01-ExtendedBook !important;
+  line-height: 1.4;
+}
+
+.password-gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.password-input-container {
+  position: relative;
+}
+
+.password-input {
+  width: 100% !important;
+  padding: 18px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  font-family: PragmaticaW01-ExtendedBook !important;
+  font-size: 16px;
+  color: #333;
+  transition: all 0.3s ease;
+  outline: none !important;
+  box-sizing: border-box;
+}
+
+.password-input:focus {
+  border-color: #4cffa0;
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 4px rgba(76, 255, 160, 0.12);
+  transform: translateY(-1px);
+}
+
+.password-input.error {
+  border-color: #ff4444;
+  background-color: rgba(255, 68, 68, 0.08);
+  box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.12);
+}
+
+.password-input::placeholder {
+  color: #999;
+  font-family: PragmaticaW01-ExtendedBook !important;
+}
+
+.password-error {
+  color: #ff4444;
+  font-size: 14px;
+  margin-top: -15px;
+  text-align: left;
+  font-family: PragmaticaW01-ExtendedBook !important;
+  padding-left: 4px;
+}
+
+.password-submit-btn {
+  padding: 18px 36px;
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px;
+  color: #333;
+  font-family: PragmaticaW01-ExtendedBook !important;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none !important;
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.password-submit-btn:hover:not(:disabled) {
+  background-color: #4cffa0;
+  border-color: #4cffa0;
+  color: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(76, 255, 160, 0.35);
+}
+
+.password-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(76, 255, 160, 0.3);
+}
+
+.password-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.password-gate-footer {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.password-gate-footer small {
+  color: #888;
+  font-size: 13px;
+  font-family: PragmaticaW01-ExtendedBook !important;
+  line-height: 1.3;
+}
+
+/* Mobile responsive adjustments for password gate */
+@media only screen and (max-width: 600px) {
+  .password-gate-box {
+    padding: 40px 30px !important;
+    margin: 15px !important;
+    max-width: calc(100vw - 30px) !important;
+    width: calc(100vw - 30px) !important;
+  }
+  
+  .password-gate-header h2 {
+    font-size: 24px !important;
+  }
+  
+  .password-gate-header p {
+    font-size: 15px !important;
+    margin-bottom: 30px !important;
+  }
+  
+  .password-input {
+    padding: 16px 20px !important;
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+  
+  .password-submit-btn {
+    padding: 16px 30px !important;
+    font-size: 16px !important;
+  }
+  
+  .password-gate-form {
+    gap: 20px !important;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  .password-gate-box {
+    padding: 35px 25px !important;
+    margin: 10px !important;
+  }
+  
+  .password-gate-header h2 {
+    font-size: 22px !important;
+  }
+}
+
+
+/* End Password Gate Styles */
+
+.cart-button {
         background-color: rgba(255, 255, 255, 0.75) !important;
         border: none !important;
         padding: 10px;
