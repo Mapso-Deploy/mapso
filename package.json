@@ -54,7 +54,5 @@
     ]
   },
   "devDependencies": {
-    "@stagewise-plugins/react": "^0.4.7",
-    "@stagewise/toolbar-react": "^0.4.7"
   }
 }
