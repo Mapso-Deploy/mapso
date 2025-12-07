@@ -31,7 +31,7 @@ const JellyCanvas = ({ isLightMode }) => {
         let tailThickness = 200;
         let tailLength = 200;
         let volumeRadius = 200;
-        const volumeForce = 0.55;
+        let volumeForce = 0.55;
         const navX = 15;
         const navY = 15;
         const cornerRadius = 25; // Could scale this too if needed
@@ -56,13 +56,14 @@ const JellyCanvas = ({ isLightMode }) => {
                 tailThickness = 200;
                 volumeRadius = 200;
                 tailLength = 200;
+                volumeForce = 0.55; // RESTORED: Auto-Reset handles the glitch now.
 
                 // DESKTOP LOGIC
                 if (isLightMode) {
                     // [LIGHT MODE PATCH]
-                    // Stronger physics to counter iframe lag & ensure tail visibility
-                    config.bottom = { spring: 0.12, friction: 0.8, drag: 0.6 };
-                    config.top = { spring: 0.15, friction: 0.8, drag: 0.1 };
+                    // MAXIMIZED TAIL: Very loose spring + Very high drag
+                    config.bottom = { spring: 0.05, friction: 0.81, drag: 0.85 };
+                    config.top = { spring: 0.1, friction: 0.8, drag: 0.1 };
                 } else {
                     // [DARK MODE / DEFAULT] - PRESERVED EXACTLY
                     config.bottom = { spring: 0.06, friction: 0.81, drag: 0.35 };
@@ -360,7 +361,7 @@ const JellyCanvas = ({ isLightMode }) => {
             window.removeEventListener('touchcancel', handleEnd);
             cancelAnimationFrame(animationFrameId);
         };
-    }, []);
+    }, [isLightMode]);
 
     return (
         <canvas
