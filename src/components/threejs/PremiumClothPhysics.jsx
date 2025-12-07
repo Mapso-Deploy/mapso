@@ -2,18 +2,36 @@ import React, { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// --- SHADER INJECTION ---
-// Inject into MeshStandardMaterial to preserve lighting/textures.
+// ============================================================================
+// TUNING GUIDE - Adjust these values to experiment:
+// ============================================================================
+const TUNING = {
+    // === IDLE SWAY (when not rotating) ===
+    IDLE_AMPLITUDE: 0.25,        // How far the fabric sways at rest (try 0.1 - 0.5)
+    IDLE_SPEED: 0.4,             // How fast the idle sway cycles (try 0.2 - 0.8)
+
+    // === TWIST (rotational wring around Y axis) ===
+    TWIST_MULTIPLIER: 0.35,       // How much twist per unit of rotation speed (try 0.2 - 0.8)
+    TWIST_MAX: 0.8,              // Maximum twist in radians (~45 degrees) (try 0.4 - 1.2)
+    TWIST_STIFFNESS: 10.0,       // How quickly twist responds (lower = slower, try 5 - 15)
+    TWIST_DAMPING: 2.5,          // How quickly twist settles (try 1 - 4)
+
+    // === WRING EFFECT (inward compression + vertical tension during twist) ===
+    WRING_INWARD: 0.25,          // How much fabric pulls INWARD toward center when twisted (try 0.1 - 0.3)
+    WRING_VERTICAL: 0.12,        // How much fabric drops DOWN when twisted (gravity on twisted mass) (try 0.05 - 0.2)
+
+    // === SWAY (sideways pendulum swing) ===
+    SWAY_MULTIPLIER: 0.12,       // How much sway per unit of rotation speed (try 0.08 - 0.2)
+    SWAY_MAX: 0.4,               // Maximum sway distance (try 0.2 - 0.6)
+    SWAY_STIFFNESS: 8.0,         // How quickly sway responds (try 4 - 12)
+    SWAY_DAMPING: 1.8,           // How quickly sway settles (try 1 - 3)
+
+    // === HEIGHT CURVE ===
+    LOOSE_FACTOR_POWER: 1.5,     // How quickly effect increases from top to bottom (try 1.2 - 2.0)
+};
+// ============================================================================
 
 const CLOTH_SHADER = {
-    uniforms: {
-        uTime: { value: 0 },
-        uTwist: { value: 0 },       // Rotational lag angle (radians)
-        uSwayX: { value: 0 },       // Pendulum sway in X direction
-        uSwayZ: { value: 0 },       // Pendulum sway in Z direction
-        uHeightRange: { value: new THREE.Vector2(-1, 1) } // [minY, maxY]
-    },
-
     head: `
     uniform float uTime;
     uniform float uTwist;
@@ -45,86 +63,91 @@ const CLOTH_SHADER = {
     }
   `,
 
-    main: `
+    main: (config) => `
     #include <begin_vertex>
     
     // === 1. HEIGHT NORMALIZATION ===
-    // For a hanging shirt: TOP (shoulders/hanger) = maxY, BOTTOM (hem) = minY
-    // looseFactor = 0 at top (pinned), looseFactor = 1 at bottom (free)
-    
     float heightRange = uHeightRange.y - uHeightRange.x;
     float normalizedHeight = clamp((transformed.y - uHeightRange.x) / heightRange, 0.0, 1.0);
     
-    // looseFactor: 0 at top (normalizedHeight=1), 1 at bottom (normalizedHeight=0)
+    // looseFactor: 0 at top (pinned shoulders), 1 at bottom (free hem)
     float looseFactor = 1.0 - normalizedHeight;
+    looseFactor = pow(looseFactor, ${config.LOOSE_FACTOR_POWER.toFixed(1)});
     
-    // GENTLE power curve: 1.5 means shoulders (top 15%) are mostly pinned
-    // but the chest/middle/bottom all have meaningful movement
-    looseFactor = pow(looseFactor, 1.5);
-    
-    // === 2. IDLE BREEZE (visible gentle sway) ===
-    // Multiple frequencies for organic feel
-    float slowWave = sin(uTime * 0.4 + transformed.y * 2.0) * 0.5 + 0.5;
-    float medWave = sin(uTime * 0.7 + transformed.x * 3.0) * 0.5 + 0.5;
+    // === 2. IDLE SWAY (gentle movement at rest) ===
+    float slowWave = sin(uTime * ${config.IDLE_SPEED.toFixed(2)} + transformed.y * 1.5);
+    float medWave = sin(uTime * ${(config.IDLE_SPEED * 1.3).toFixed(2)} + transformed.x * 2.0 + 1.0);
     float n = noise(vec3(
-      transformed.x * 0.5 + uTime * 0.08,
-      transformed.y * 0.3 + uTime * 0.05,
-      transformed.z * 0.5 + uTime * 0.06
+      transformed.x * 0.4 + uTime * 0.05,
+      transformed.y * 0.3 + uTime * 0.04,
+      transformed.z * 0.4 + uTime * 0.03
     )) * 2.0 - 1.0;
     
-    // Combine for organic idle movement
-    float idleX = (slowWave * 0.6 + n * 0.4) * 0.08 * looseFactor;
-    float idleZ = (medWave * 0.5 + n * 0.5) * 0.06 * looseFactor;
+    float idleX = (slowWave * 0.7 + n * 0.3) * ${config.IDLE_AMPLITUDE.toFixed(2)} * looseFactor;
+    float idleZ = (medWave * 0.6 + n * 0.4) * ${(config.IDLE_AMPLITUDE * 0.7).toFixed(2)} * looseFactor;
     
     transformed.x += idleX;
     transformed.z += idleZ;
     
-    // === 3. TWIST (Rotational Inertia around Y axis) ===
-    // This is THE KEY effect: when you spin the hanger, the bottom LAGS behind
-    // creating a "wring" or twist in the fabric
+    // === 3. TWIST WITH WRING PHYSICS ===
+    // The twist is a rotation around the Y axis, but with proper wring physics:
+    // - Fabric pulls INWARD toward center axis (compression)
+    // - Fabric pulls DOWNWARD/scrunches (vertical tension)
     
-    // Twist amount scales with looseFactor - bottom twists more than middle
     float twistAngle = uTwist * looseFactor;
+    float absTwist = abs(uTwist);
     
-    // Apply rigid rotation around Y axis (center of garment)
-    // This rotates X and Z coordinates while preserving distance from axis
+    // Calculate current distance from center axis (Y axis)
+    float radiusFromCenter = length(transformed.xz);
+    
+    // --- 3a. INWARD COMPRESSION (the key to avoiding "wine opener" look) ---
+    // When fabric twists, it wraps tighter around the center axis
+    // This pulls vertices TOWARD the Y axis proportional to twist amount
+    float inwardPull = absTwist * ${config.WRING_INWARD.toFixed(2)} * looseFactor;
+    
+    // Apply inward compression (reduce radius)
+    if (radiusFromCenter > 0.01) {
+      vec2 dirToCenter = -normalize(transformed.xz);
+      transformed.xz += dirToCenter * inwardPull * radiusFromCenter;
+    }
+    
+    // --- 3b. ROTATIONAL TWIST ---
+    // Now apply the rotation around Y axis
+    // The rotation happens AFTER inward compression, on the compressed radius
     vec2 rotatedXZ = rotate2d(twistAngle) * transformed.xz;
     transformed.x = rotatedXZ.x;
     transformed.z = rotatedXZ.y;
     
-    // === 4. PENDULUM SWAY ===
-    // The bottom swings in the direction of rotation momentum
-    // This adds to the "being swung around" feel
+    // --- 3c. VERTICAL DROP (gravity on twisted mass) ---
+    // For a HANGING garment, twisting causes the bottom to drop slightly
+    // The twisted mass is pulled down by gravity, not up
+    float verticalDrop = absTwist * ${config.WRING_VERTICAL.toFixed(2)} * looseFactor;
+    transformed.y -= verticalDrop;  // NEGATIVE = downward
+    
+    // === 4. PENDULUM SWAY (independent from twist) ===
+    // This is the sideways swing from rotation momentum
+    // It's SEPARATE from twist - just a horizontal displacement
     
     transformed.x += uSwayX * looseFactor;
     transformed.z += uSwayZ * looseFactor;
-    
-    // === 5. WRING TENSION (vertical lift during twist) ===
-    // Twisted fabric tightens and pulls up slightly
-    float wringLift = abs(uTwist) * 0.05 * looseFactor;
-    transformed.y += wringLift;
   `
 };
 
-const PremiumClothPhysics = ({ meshRef, rotationData, debug = false }) => {
-    // Physics state
+const PremiumClothPhysics = ({ meshRef, rotationData, debug = true }) => {
     const state = useRef({
-        // Twist (rotational lag)
         twist: 0,
         twistVelocity: 0,
-
-        // Pendulum sway (horizontal displacement)
         swayX: 0,
         swayZ: 0,
         swayVelocityX: 0,
         swayVelocityZ: 0,
-
-        // Track last rotation direction
         lastDirection: 0
     });
 
     useEffect(() => {
         if (!meshRef?.current) return;
+
+        const shaderMain = CLOTH_SHADER.main(TUNING);
 
         meshRef.current.traverse((child) => {
             if (child.isMesh && child.material) {
@@ -144,14 +167,13 @@ const PremiumClothPhysics = ({ meshRef, rotationData, debug = false }) => {
                     shader.vertexShader = CLOTH_SHADER.head + shader.vertexShader;
                     shader.vertexShader = shader.vertexShader.replace(
                         '#include <begin_vertex>',
-                        CLOTH_SHADER.main
+                        shaderMain
                     );
 
-                    if (debug) console.log("CLOTH PHYSICS: Shader injected for", child.name);
+                    console.log("CLOTH PHYSICS: Shader injected with WRING physics");
                 };
                 child.material.needsUpdate = true;
 
-                // Depth material for shadows
                 child.customDepthMaterial = new THREE.MeshDepthMaterial({
                     depthPacking: THREE.RGBADepthPacking
                 });
@@ -170,13 +192,13 @@ const PremiumClothPhysics = ({ meshRef, rotationData, debug = false }) => {
                     shader.vertexShader = CLOTH_SHADER.head + shader.vertexShader;
                     shader.vertexShader = shader.vertexShader.replace(
                         '#include <begin_vertex>',
-                        CLOTH_SHADER.main
+                        shaderMain
                     );
                     child.userData.depthShader = shader;
                 };
             }
         });
-    }, [meshRef, debug]);
+    }, [meshRef]);
 
     useFrame((clock, delta) => {
         if (!meshRef?.current) return;
@@ -186,55 +208,40 @@ const PremiumClothPhysics = ({ meshRef, rotationData, debug = false }) => {
         const s = state.current;
 
         // === TWIST PHYSICS ===
-        // When user rotates, the cloth bottom lags behind (resists change)
-
-        // Target twist: proportional to rotation speed, opposite direction
-        const maxTwist = 0.8; // ~45 degrees max twist
         let targetTwist = 0;
 
         if (isMoving && Math.abs(speed) > 0.01) {
-            // Negative direction = twist lags opposite to spin
-            // Increased multiplier for more visible twist
-            targetTwist = -direction * Math.min(speed * 0.25, maxTwist);
+            targetTwist = -direction * Math.min(speed * TUNING.TWIST_MULTIPLIER, TUNING.TWIST_MAX);
             s.lastDirection = direction;
         }
 
-        // SLOWER spring physics for heavy, fluid feel
-        // Reduced stiffness = slower oscillation
-        // Moderate damping = some bounce but settles
-        const twistStiffness = 12.0;  // Reduced from 25 for slower movement
-        const twistDamping = 2.0;     // Reduced for more swing
-
         const twistDisplacement = s.twist - targetTwist;
-        const twistForce = -twistStiffness * twistDisplacement - twistDamping * s.twistVelocity;
+        const twistForce = -TUNING.TWIST_STIFFNESS * twistDisplacement - TUNING.TWIST_DAMPING * s.twistVelocity;
 
         s.twistVelocity += twistForce * dt;
         s.twist += s.twistVelocity * dt;
 
-        // === SWAY PHYSICS ===
-        // Pendulum effect: bottom swings in direction of rotation
-
+        // === SWAY PHYSICS (independent pendulum) ===
         let targetSwayX = 0;
         let targetSwayZ = 0;
 
         if (isMoving && Math.abs(speed) > 0.05) {
-            // Sway in direction of rotation, scaled by speed
-            const swayMagnitude = Math.min(speed * 0.12, 0.4);
+            const swayMagnitude = Math.min(speed * TUNING.SWAY_MULTIPLIER, TUNING.SWAY_MAX);
             targetSwayX = direction * swayMagnitude;
-            targetSwayZ = direction * swayMagnitude * 0.3;
+            targetSwayZ = direction * swayMagnitude * 0.2;
         }
 
-        // Even softer pendulum spring for heavy swing
-        const swayStiffness = 8.0;   // Very soft
-        const swayDamping = 1.5;     // Low damping = more swing
-
-        const swayForceX = -swayStiffness * (s.swayX - targetSwayX) - swayDamping * s.swayVelocityX;
-        const swayForceZ = -swayStiffness * (s.swayZ - targetSwayZ) - swayDamping * s.swayVelocityZ;
+        const swayForceX = -TUNING.SWAY_STIFFNESS * (s.swayX - targetSwayX) - TUNING.SWAY_DAMPING * s.swayVelocityX;
+        const swayForceZ = -TUNING.SWAY_STIFFNESS * (s.swayZ - targetSwayZ) - TUNING.SWAY_DAMPING * s.swayVelocityZ;
 
         s.swayVelocityX += swayForceX * dt;
         s.swayVelocityZ += swayForceZ * dt;
         s.swayX += s.swayVelocityX * dt;
         s.swayZ += s.swayVelocityZ * dt;
+
+        if (debug && (Math.abs(s.twist) > 0.02 || Math.abs(s.swayX) > 0.01)) {
+            console.log(`CLOTH: twist=${s.twist.toFixed(3)} sway=(${s.swayX.toFixed(3)}, ${s.swayZ.toFixed(3)})`);
+        }
 
         // === UPDATE UNIFORMS ===
         meshRef.current.traverse((child) => {
