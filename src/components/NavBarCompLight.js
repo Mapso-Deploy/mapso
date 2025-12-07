@@ -9,7 +9,7 @@ export default class NavbarCompLight extends Component {
   render() {
     return (
       <div>
-        <JellyCanvas />
+        <JellyCanvas isLightMode={true} />
         <Navbar expand="lg" className="Top-Nav-Light jelly-mode" style={{ background: 'transparent', boxShadow: 'none', border: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
           <Container>
             <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><img src={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} /></a></NavLink></Navbar.Brand>

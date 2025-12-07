@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-const JellyCanvas = () => {
+const JellyCanvas = ({ isLightMode }) => {
     const canvasRef = useRef(null);
 
     // ==========================================
@@ -15,12 +15,11 @@ const JellyCanvas = () => {
         let animationFrameId;
 
         // Configuration
-        const config = {
-            // TOP: Very stable, pinned.
+        // Configuration
+        let config = {
             top: { spring: 0.1, friction: 0.8, drag: 0.05 },
             right: { spring: 0.1, friction: 0.8, drag: 0.2 },
             left: { spring: 0.1, friction: 0.8, drag: 0.2 },
-            // BOTTOM: Loose but heavy ripples.
             bottom: { spring: 0.06, friction: 0.81, drag: 0.35 }
         };
 
@@ -46,15 +45,29 @@ const JellyCanvas = () => {
             // RESPONSIVE LOGIC
             // Mobile Breakpoint (e.g. 768px matches typical tablet/mobile split)
             if (width < 768) {
-                navHeight = 85; // Thinner on mobile
-                tailThickness = 120; // Smaller interaction radius
-                volumeRadius = 120;  // Smaller bulge radius
+                navHeight = 85;
+                tailThickness = 120;
+                volumeRadius = 120;
                 tailLength = 100;
+                // Mobile physics (Original)
+                config.bottom = { spring: 0.06, friction: 0.81, drag: 0.35 };
             } else {
-                navHeight = 85; // Default desktop
+                navHeight = 85;
                 tailThickness = 200;
                 volumeRadius = 200;
                 tailLength = 200;
+
+                // DESKTOP LOGIC
+                if (isLightMode) {
+                    // [LIGHT MODE PATCH]
+                    // Stronger physics to counter iframe lag & ensure tail visibility
+                    config.bottom = { spring: 0.12, friction: 0.8, drag: 0.6 };
+                    config.top = { spring: 0.15, friction: 0.8, drag: 0.1 };
+                } else {
+                    // [DARK MODE / DEFAULT] - PRESERVED EXACTLY
+                    config.bottom = { spring: 0.06, friction: 0.81, drag: 0.35 };
+                    config.top = { spring: 0.1, friction: 0.8, drag: 0.05 };
+                }
             }
 
             const totalWidth = width - 30;
@@ -249,15 +262,24 @@ const JellyCanvas = () => {
         const update = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // TIME-BASED DECAY (The Glitch Fix)
-            // INCREASED to 140ms for Desktop/Iframe stability
-            // This is slightly "looser" but prevents accidental snapping on frame drops.
+            // TIME-BASED DECAY & RESET
             const timeSinceInput = Date.now() - lastInputTime;
+
+            // Standard decay (Original)
             if (timeSinceInput > 140) {
-                mouse.vx *= 0.6; // Strong decay when idle
+                mouse.vx *= 0.6;
                 mouse.vy *= 0.6;
                 if (Math.abs(mouse.vx) < 0.1) mouse.vx = 0;
                 if (Math.abs(mouse.vy) < 0.1) mouse.vy = 0;
+            }
+
+            // [LIGHT MODE GLITCH FIX]
+            // If we are in light mode (iframe) and haven't had input for 250ms,
+            // FORCE RESET the mouse position. This kills the "static bulge" 
+            // that gets stuck when the iframe steals the cursor focus.
+            if (isLightMode && timeSinceInput > 250) {
+                mouse.x = -1000;
+                mouse.y = -1000;
             }
 
             updateSidePhysics(sides.top, config.top, 'top');
