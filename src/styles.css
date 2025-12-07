@@ -426,6 +426,15 @@ p.divider {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
 }
 
+.Top-Nav.jelly-mode,
+.Top-Nav-Light.jelly-mode {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 /* Override Bootstrap container behavior in floating navbar */
 .Top-Nav .container,
 .Top-Nav-Light .container {
