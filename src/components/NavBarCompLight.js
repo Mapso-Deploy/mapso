@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom'
 import logo from "../logo-inverted.png"
 import "../styles.css"
 import JellyCanvas from './JellyCanvas'
+import CyclicLogo from './CyclicLogo'
 
 export default class NavbarCompLight extends Component {
   render() {
@@ -12,7 +13,7 @@ export default class NavbarCompLight extends Component {
         <JellyCanvas isLightMode={true} />
         <Navbar expand="lg" className="Top-Nav-Light jelly-mode" style={{ background: 'transparent', boxShadow: 'none', border: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
           <Container>
-            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><img src={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} /></a></NavLink></Navbar.Brand>
+            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><CyclicLogo mainLogo={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} /></a></NavLink></Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="navbar-dark" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ms-auto px-5">
