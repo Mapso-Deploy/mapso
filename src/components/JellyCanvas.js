@@ -6,42 +6,56 @@ const JellyCanvas = () => {
     // ==========================================
     // 🔧 TWEAKING VALUES
     // ==========================================
-    const tailLength = 200;    // Max distance the gel can stretch (Soft Limit)
-    const tailThickness = 200; // Interaction Radius (How wide the pull is)
-
-    const config = {
-        // TOP: Very stable, pinned.
-        top: { spring: 0.1, friction: 0.8, drag: 0.05 },
-        right: { spring: 0.1, friction: 0.8, drag: 0.2 },
-        left: { spring: 0.1, friction: 0.8, drag: 0.2 },
-        // BOTTOM: Loose but heavy ripples.
-        bottom: { spring: 0.06, friction: 0.81, drag: 0.35 }
-    };
-
-    // Repulsion / "Volume" Settings
-    const volumeRadius = 200; // Radius of static bulge (cursor volume)
-    const volumeForce = 0.55;  // Strength of displacement when still
-
-    // Visual Settings
-    const navX = 15;
-    const navY = 15;
-    const navHeight = 85;
-    const cornerRadius = 25;
-    // ==========================================
+    // Mouse State needs to be outside the effect to be shared or useRef
+    // But since we only have one instance, local vars inside useEffect are fine.
 
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         let animationFrameId;
 
+        // Configuration
+        const config = {
+            // TOP: Very stable, pinned.
+            top: { spring: 0.1, friction: 0.8, drag: 0.05 },
+            right: { spring: 0.1, friction: 0.8, drag: 0.2 },
+            left: { spring: 0.1, friction: 0.8, drag: 0.2 },
+            // BOTTOM: Loose but heavy ripples.
+            bottom: { spring: 0.06, friction: 0.81, drag: 0.35 }
+        };
+
         const sides = { top: [], right: [], bottom: [], left: [] };
         let width, height;
+
+        // Dynamic Settings (Modified in initPoints)
+        let navHeight = 85;
+        let tailThickness = 200;
+        let tailLength = 200;
+        let volumeRadius = 200;
+        const volumeForce = 0.55;
+        const navX = 15;
+        const navY = 15;
+        const cornerRadius = 25; // Could scale this too if needed
 
         const initPoints = () => {
             width = window.innerWidth;
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
+
+            // RESPONSIVE LOGIC
+            // Mobile Breakpoint (e.g. 768px matches typical tablet/mobile split)
+            if (width < 768) {
+                navHeight = 85; // Thinner on mobile
+                tailThickness = 120; // Smaller interaction radius
+                volumeRadius = 120;  // Smaller bulge radius
+                tailLength = 100;
+            } else {
+                navHeight = 85; // Default desktop
+                tailThickness = 200;
+                volumeRadius = 200;
+                tailLength = 200;
+            }
 
             const totalWidth = width - 30;
             const gap = 5;
@@ -57,7 +71,6 @@ const JellyCanvas = () => {
 
             // 1. TOP
             sides.top = fill(navX + cornerRadius, navX + totalWidth - cornerRadius, navY, 0, navY);
-            // Fix ox:
             sides.top.forEach(p => { p.ox = p.x; p.oy = navY; });
             sides.top.push({ x: navX + totalWidth - cornerRadius, y: navY, ox: navX + totalWidth - cornerRadius, oy: navY, vx: 0, vy: 0 });
 
@@ -84,23 +97,76 @@ const JellyCanvas = () => {
         };
 
         const mouse = { x: -1000, y: -1000, vx: 0, vy: 0, lastX: -1000, lastY: -1000 };
-        const handleMouseMove = (e) => {
+        const speedLimit = 35;
+        let lastInputTime = 0; // Timestamp of last real input
+
+        // Shared handler for updating position and velocity
+        const updateInput = (x, y) => {
+            lastInputTime = Date.now(); // Mark activity
+
             mouse.lastX = mouse.x;
             mouse.lastY = mouse.y;
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
+            mouse.x = x;
+            mouse.y = y;
 
-            // Limit Velocity (Anti-Glitch)
-            const rawVx = e.clientX - mouse.lastX;
-            const rawVy = e.clientY - mouse.lastY;
-            const speedLimit = 35; // Clamp per frame speed
-            mouse.vx = Math.max(Math.min(rawVx, speedLimit), -speedLimit);
-            mouse.vy = Math.max(Math.min(rawVy, speedLimit), -speedLimit);
+            // Compute raw velocity
+            if (mouse.lastX === -1000 || mouse.lastY === -1000) {
+                mouse.vx = 0;
+                mouse.vy = 0;
+            } else {
+                const rawVx = x - mouse.lastX;
+                const rawVy = y - mouse.lastY;
+                mouse.vx = Math.max(Math.min(rawVx, speedLimit), -speedLimit);
+                mouse.vy = Math.max(Math.min(rawVy, speedLimit), -speedLimit);
+            }
+        }
+
+        const handleMouseMove = (e) => {
+            updateInput(e.clientX, e.clientY);
+        };
+
+        const handleTouchMove = (e) => {
+            const touch = e.touches[0];
+            updateInput(touch.clientX, touch.clientY);
+        };
+
+        const handleTouchStart = (e) => {
+            const touch = e.touches[0];
+            lastInputTime = Date.now();
+
+            // [DRAG ONLY FIX]
+            // We do NOT update mouse.x/y to the touch position yet.
+            // We keep mouse.x/y at -1000 (offscreen).
+            // We ONLY update lastX/Y so that when the FIRST 'touchmove' happens,
+            // the velocity calc (current - last) is correct and doesn't explode.
+
+            mouse.lastX = touch.clientX;
+            mouse.lastY = touch.clientY;
+            // mouse.x & mouse.y stay at -1000.
+
+            mouse.vx = 0;
+            mouse.vy = 0;
+        };
+
+        const handleEnd = () => {
+            mouse.x = -1000;
+            mouse.y = -1000;
+            mouse.vx = 0;
+            mouse.vy = 0;
         };
 
         initPoints();
         window.addEventListener('resize', initPoints);
+
+        // Mouse Listeners
         window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseout', handleEnd);
+
+        // Touch Listeners
+        window.addEventListener('touchstart', handleTouchStart, { passive: true });
+        window.addEventListener('touchmove', handleTouchMove, { passive: true });
+        window.addEventListener('touchend', handleEnd);
+        window.addEventListener('touchcancel', handleEnd); // Handle interruption
 
         const updateSidePhysics = (points, settings, sideName) => {
             points.forEach(p => {
@@ -110,18 +176,15 @@ const JellyCanvas = () => {
                 const angle = Math.atan2(dy, dx);
 
                 // 1. Static Volume Displacement (Bulge based on proximity)
-                if (dist < volumeRadius) {
+                // Only if mouse is "active" (on screen)
+                if (mouse.x > -500 && dist < volumeRadius) {
                     const norm = dist / volumeRadius;
-                    // Push OUT from cursor center
                     const volC = Math.pow(1 - norm, 2) * volumeForce;
-
-                    // Simply displace position (volume occupies space)
-                    // or add force? Force is more stable for physics
                     p.vx += Math.cos(angle) * volC * 2;
                     p.vy += Math.sin(angle) * volC * 2;
                 }
 
-                // 2. Dynamic Drag (Asymmetrical)
+                // 2. Dynamic Drag (The "Tail")
                 if (dist < tailThickness) {
                     const norm = dist / tailThickness;
                     const influence = Math.pow(1 - norm, 2);
@@ -131,24 +194,16 @@ const JellyCanvas = () => {
                         let forceY = mouse.vy * settings.drag * influence;
 
                         // [ASYMMETRY LOGIC]
-                        // Direction check: Are we pushing "IN" to the gel?
-                        // For bottom edge: Pushing UP (vy < 0) is pushing IN (compression).
-                        // For Top edge: Pushing DOWN (vy > 0) is pushing IN.
-
                         let isPushingIn = false;
                         if (sideName === 'bottom' && mouse.vy < 0) isPushingIn = true;
                         if (sideName === 'top' && mouse.vy > 0) isPushingIn = true;
-
-                        // If checking X sides, similar logic (left side, right vel = in)
                         if (sideName === 'left' && mouse.vx > 0) isPushingIn = true;
                         if (sideName === 'right' && mouse.vx < 0) isPushingIn = true;
 
                         if (isPushingIn) {
-                            // Weak Push
                             forceX *= 0.1;
                             forceY *= 0.1;
                         } else {
-                            // Strong Pull (Normal)
                             forceX *= 1.2;
                             forceY *= 1.2;
                         }
@@ -164,33 +219,22 @@ const JellyCanvas = () => {
                 p.vx += ax;
                 p.vy += ay;
 
-                // 4. Soft Constraints (Prevent Inside-Out)
-                // If it goes "into" the box too much, strong repel.
-                // Box bounds: navX, navY, w, h
-                const centerX = navX + width / 2; // rough
-                // Let's rely on Origin displacement logic
+                // 4. Soft Constraints
                 const dOx = p.x - p.ox;
                 const dOy = p.y - p.oy;
                 const disp = Math.sqrt(dOx * dOx + dOy * dOy);
 
-                // Soft Limit (Tail Length)
                 if (disp > tailLength) {
                     const excess = disp - tailLength;
-                    const limitForce = excess * 0.15; // Elastic limit
+                    const limitForce = excess * 0.15;
                     const returnAngle = Math.atan2(dOy, dOx);
                     p.vx -= Math.cos(returnAngle) * limitForce;
                     p.vy -= Math.sin(returnAngle) * limitForce;
                 }
 
-                // Anti-Compression (Inside Out)
-                // If Bottom point goes ABOVE its origin (y < oy), it's compressing.
-                // Allow small compression, but resist strongly.
-                if (sideName === 'bottom' && p.y < p.oy - 15) {
-                    p.vy += 0.5; // Push down hard
-                }
-                if (sideName === 'top' && p.y > p.oy + 15) {
-                    p.vy -= 0.5; // Push up hard
-                }
+                // Inside-Out Protection
+                if (sideName === 'bottom' && p.y < p.oy - 15) p.vy += 0.5;
+                if (sideName === 'top' && p.y > p.oy + 15) p.vy -= 0.5;
 
                 // 5. Friction
                 p.vx *= settings.friction;
@@ -204,6 +248,17 @@ const JellyCanvas = () => {
 
         const update = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // TIME-BASED DECAY (The Glitch Fix)
+            // INCREASED to 140ms for Desktop/Iframe stability
+            // This is slightly "looser" but prevents accidental snapping on frame drops.
+            const timeSinceInput = Date.now() - lastInputTime;
+            if (timeSinceInput > 140) {
+                mouse.vx *= 0.6; // Strong decay when idle
+                mouse.vy *= 0.6;
+                if (Math.abs(mouse.vx) < 0.1) mouse.vx = 0;
+                if (Math.abs(mouse.vy) < 0.1) mouse.vy = 0;
+            }
 
             updateSidePhysics(sides.top, config.top, 'top');
             updateSidePhysics(sides.right, config.right, 'right');
@@ -220,7 +275,7 @@ const JellyCanvas = () => {
 
             ctx.beginPath();
 
-            // Standard smooth drawing
+            // --- DRAWING LOGIC ---
             if (sides.top.length > 0) {
                 ctx.moveTo(sides.top[0].x, sides.top[0].y);
                 for (let i = 1; i < sides.top.length; i++) {
@@ -231,13 +286,9 @@ const JellyCanvas = () => {
                     ctx.quadraticCurveTo(prev.x, prev.y, cx, cy);
                 }
             }
-            // Corners etc..
-            // Top Right
-            ctx.quadraticCurveTo(
-                navX + (width - 30), navY,
-                sides.right[0].x, sides.right[0].y
-            );
-            // Right Side
+
+            // Top Right Corner & Right Side
+            ctx.quadraticCurveTo(navX + (width - 30), navY, sides.right[0].x, sides.right[0].y);
             for (let i = 1; i < sides.right.length; i++) {
                 const p = sides.right[i];
                 const prev = sides.right[i - 1];
@@ -245,12 +296,9 @@ const JellyCanvas = () => {
                 const cy = (prev.y + p.y) / 2;
                 ctx.quadraticCurveTo(prev.x, prev.y, cx, cy);
             }
-            // Bottom Right
-            ctx.quadraticCurveTo(
-                navX + (width - 30), navY + navHeight,
-                sides.bottom[sides.bottom.length - 1].x, sides.bottom[sides.bottom.length - 1].y
-            );
-            // Bottom Side (Reverse)
+
+            // Bottom Right Corner & Bottom Side (Reverse)
+            ctx.quadraticCurveTo(navX + (width - 30), navY + navHeight, sides.bottom[sides.bottom.length - 1].x, sides.bottom[sides.bottom.length - 1].y);
             for (let i = sides.bottom.length - 2; i >= 0; i--) {
                 const p = sides.bottom[i];
                 const prev = sides.bottom[i + 1];
@@ -258,12 +306,9 @@ const JellyCanvas = () => {
                 const cy = (prev.y + p.y) / 2;
                 ctx.quadraticCurveTo(prev.x, prev.y, cx, cy);
             }
-            // Bottom Left
-            ctx.quadraticCurveTo(
-                navX, navY + navHeight,
-                sides.left[sides.left.length - 1].x, sides.left[sides.left.length - 1].y
-            );
-            // Left Side (Reverse)
+
+            // Bottom Left Corner & Left Side (Reverse)
+            ctx.quadraticCurveTo(navX, navY + navHeight, sides.left[sides.left.length - 1].x, sides.left[sides.left.length - 1].y);
             for (let i = sides.left.length - 2; i >= 0; i--) {
                 const p = sides.left[i];
                 const prev = sides.left[i + 1];
@@ -271,11 +316,9 @@ const JellyCanvas = () => {
                 const cy = (prev.y + p.y) / 2;
                 ctx.quadraticCurveTo(prev.x, prev.y, cx, cy);
             }
-            // Top Left
-            ctx.quadraticCurveTo(
-                navX, navY,
-                sides.top[0].x, sides.top[0].y
-            );
+
+            // Top Left Corner
+            ctx.quadraticCurveTo(navX, navY, sides.top[0].x, sides.top[0].y);
 
             ctx.closePath();
             ctx.fill();
@@ -288,6 +331,11 @@ const JellyCanvas = () => {
         return () => {
             window.removeEventListener('resize', initPoints);
             window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseout', handleEnd);
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', handleEnd);
+            window.removeEventListener('touchcancel', handleEnd);
             cancelAnimationFrame(animationFrameId);
         };
     }, []);
