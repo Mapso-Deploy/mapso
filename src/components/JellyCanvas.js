@@ -1,13 +1,19 @@
 import React, { useRef, useEffect } from 'react';
 
-const JellyCanvas = ({ isLightMode }) => {
+const JellyCanvas = ({ isLightMode, expanded }) => {
     const canvasRef = useRef(null);
 
     // ==========================================
     // 🔧 TWEAKING VALUES
     // ==========================================
-    // Mouse State needs to be outside the effect to be shared or useRef
-    // But since we only have one instance, local vars inside useEffect are fine.
+    // Track animated height across renders without re-triggering effect if not needed
+    // However, since we want the effect to respond to `expanded`, we can put the logic inside.
+    const currentNavHeightRef = useRef(85);
+    const expandedRef = useRef(expanded);
+
+    useEffect(() => {
+        expandedRef.current = expanded;
+    }, [expanded]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -27,7 +33,7 @@ const JellyCanvas = ({ isLightMode }) => {
         let width, height;
 
         // Dynamic Settings (Modified in initPoints)
-        let navHeight = 85;
+        let baseNavHeight = 85;
         let tailThickness = 200;
         let tailLength = 200;
         let volumeRadius = 200;
@@ -35,6 +41,7 @@ const JellyCanvas = ({ isLightMode }) => {
         const navX = 15;
         const navY = 15;
         const cornerRadius = 25; // Could scale this too if needed
+        const expandedHeight = 250; // Increased height to cover menu fully
 
         const initPoints = () => {
             width = window.innerWidth;
@@ -43,16 +50,16 @@ const JellyCanvas = ({ isLightMode }) => {
             canvas.height = height;
 
             // RESPONSIVE LOGIC
-            // Mobile Breakpoint (e.g. 768px matches typical tablet/mobile split)
-            if (width < 768) {
-                navHeight = 85;
+            // Match Bootstrap 'lg' breakpoint (992px)
+            if (width < 992) {
+                baseNavHeight = 85;
                 tailThickness = 120;
                 volumeRadius = 120;
                 tailLength = 100;
                 // Mobile physics (Original)
                 config.bottom = { spring: 0.06, friction: 0.81, drag: 0.35 };
             } else {
-                navHeight = 85;
+                baseNavHeight = 85;
                 tailThickness = 200;
                 volumeRadius = 200;
                 tailLength = 200;
@@ -83,6 +90,16 @@ const JellyCanvas = ({ isLightMode }) => {
                 return arr;
             };
 
+            // Use current animated height for initial setup to avoid snapping if resized while expanded
+            // But usually resize resets everything. Let's use currentNavHeightRef if meaningful, or base.
+            // Actually, if we resize, we probably want to reset to base state or current target?
+            // Let's use baseNavHeight for simplicity during resize re-init, or rely on animation loop to fix it.
+            // Using baseNavHeight ensures ratios are calculated against the "closed" state (or we calculate against expanded).
+            // Logic: Calculate ratios based on CURRENT target state? 
+            // Better: Calculate ratios based on the conceptual "0 to 1" span.
+
+            const h = currentNavHeightRef.current; // Use current animated height to prevent jumping
+
             // 1. TOP
             sides.top = fill(navX + cornerRadius, navX + totalWidth - cornerRadius, navY, 0, navY);
             sides.top.forEach(p => { p.ox = p.x; p.oy = navY; });
@@ -91,23 +108,30 @@ const JellyCanvas = ({ isLightMode }) => {
             // 2. RIGHT
             const rightX = navX + totalWidth;
             sides.right = [];
-            for (let y = navY + cornerRadius; y <= navY + navHeight - cornerRadius; y += gap) {
-                sides.right.push({ x: rightX, y, ox: rightX, oy: y, vx: 0, vy: 0 });
+            // We generate points covering the current height
+            for (let y = navY + cornerRadius; y <= navY + h - cornerRadius; y += gap) {
+                // Calculate normalized ratio (0 at top, 1 at bottom)
+                // Note: h is the total height of the nav area.
+                // y goes from navY to navY + h.
+                // relative Y = y - navY.
+                const ratio = (y - navY) / Math.max(h, 1);
+                sides.right.push({ x: rightX, y, ox: rightX, oy: y, vx: 0, vy: 0, ratio: ratio });
             }
-            sides.right.push({ x: rightX, y: navY + navHeight - cornerRadius, ox: rightX, oy: navY + navHeight - cornerRadius, vx: 0, vy: 0 });
+            sides.right.push({ x: rightX, y: navY + h - cornerRadius, ox: rightX, oy: navY + h - cornerRadius, vx: 0, vy: 0, isCorner: true });
 
             // 3. BOTTOM
-            sides.bottom = fill(navX + cornerRadius, navX + totalWidth - cornerRadius, navY + navHeight, 0, navY + navHeight);
-            sides.bottom.forEach(p => { p.ox = p.x; p.oy = navY + navHeight; });
-            sides.bottom.push({ x: navX + totalWidth - cornerRadius, y: navY + navHeight, ox: navX + totalWidth - cornerRadius, oy: navY + navHeight, vx: 0, vy: 0 });
+            sides.bottom = fill(navX + cornerRadius, navX + totalWidth - cornerRadius, navY + h, 0, navY + h);
+            sides.bottom.forEach(p => { p.ox = p.x; p.oy = navY + h; });
+            sides.bottom.push({ x: navX + totalWidth - cornerRadius, y: navY + h, ox: navX + totalWidth - cornerRadius, oy: navY + h, vx: 0, vy: 0 });
 
             // 4. LEFT
             const leftX = navX;
             sides.left = [];
-            for (let y = navY + cornerRadius; y <= navY + navHeight - cornerRadius; y += gap) {
-                sides.left.push({ x: leftX, y, ox: leftX, oy: y, vx: 0, vy: 0 });
+            for (let y = navY + cornerRadius; y <= navY + h - cornerRadius; y += gap) {
+                const ratio = (y - navY) / Math.max(h, 1);
+                sides.left.push({ x: leftX, y, ox: leftX, oy: y, vx: 0, vy: 0, ratio: ratio });
             }
-            sides.left.push({ x: leftX, y: navY + navHeight - cornerRadius, ox: leftX, oy: navY + navHeight - cornerRadius, vx: 0, vy: 0 });
+            sides.left.push({ x: leftX, y: navY + h - cornerRadius, ox: leftX, oy: navY + h - cornerRadius, vx: 0, vy: 0, isCorner: true });
         };
 
         const mouse = { x: -1000, y: -1000, vx: 0, vy: 0, lastX: -1000, lastY: -1000 };
@@ -168,6 +192,12 @@ const JellyCanvas = ({ isLightMode }) => {
             mouse.vx = 0;
             mouse.vy = 0;
         };
+
+        // New: Event listener for custom event to toggle expanded state
+        const handleToggleExpanded = (event) => {
+            expandedRef.current = event.detail.expanded;
+        };
+        window.addEventListener('jellyCanvasToggleExpanded', handleToggleExpanded);
 
         initPoints();
         window.addEventListener('resize', initPoints);
@@ -263,6 +293,40 @@ const JellyCanvas = ({ isLightMode }) => {
         const update = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // ANIMATE HEIGHT
+            const isMobile = window.innerWidth < 992; // MATCH BOOTSTRAP LG BREAKPOINT
+            const target = (isMobile && expandedRef.current) ? expandedHeight : baseNavHeight;
+            const diff = target - currentNavHeightRef.current; // Use Ref current
+
+            // Allow small delta to settle
+            if (Math.abs(diff) > 0.5) {
+                currentNavHeightRef.current += diff * 0.15; // Smooth lerp
+                const h = currentNavHeightRef.current;
+
+                // Update Origin Points (OY)
+
+                // Bottom: Move to new Y
+                sides.bottom.forEach(p => {
+                    p.oy = navY + h;
+                });
+
+                // Sides: Stretch based on ratio
+                sides.right.forEach(p => {
+                    if (p.ratio !== undefined) {
+                        p.oy = navY + (p.ratio * h);
+                    } else if (p.isCorner) {
+                        p.oy = navY + h - cornerRadius;
+                    }
+                });
+                sides.left.forEach(p => {
+                    if (p.ratio !== undefined) {
+                        p.oy = navY + (p.ratio * h);
+                    } else if (p.isCorner) {
+                        p.oy = navY + h - cornerRadius;
+                    }
+                });
+            }
+
             // TIME-BASED DECAY & RESET
             const timeSinceInput = Date.now() - lastInputTime;
 
@@ -321,7 +385,7 @@ const JellyCanvas = ({ isLightMode }) => {
             }
 
             // Bottom Right Corner & Bottom Side (Reverse)
-            ctx.quadraticCurveTo(navX + (width - 30), navY + navHeight, sides.bottom[sides.bottom.length - 1].x, sides.bottom[sides.bottom.length - 1].y);
+            ctx.quadraticCurveTo(navX + (width - 30), navY + currentNavHeightRef.current, sides.bottom[sides.bottom.length - 1].x, sides.bottom[sides.bottom.length - 1].y);
             for (let i = sides.bottom.length - 2; i >= 0; i--) {
                 const p = sides.bottom[i];
                 const prev = sides.bottom[i + 1];
@@ -331,7 +395,7 @@ const JellyCanvas = ({ isLightMode }) => {
             }
 
             // Bottom Left Corner & Left Side (Reverse)
-            ctx.quadraticCurveTo(navX, navY + navHeight, sides.left[sides.left.length - 1].x, sides.left[sides.left.length - 1].y);
+            ctx.quadraticCurveTo(navX, navY + currentNavHeightRef.current, sides.left[sides.left.length - 1].x, sides.left[sides.left.length - 1].y);
             for (let i = sides.left.length - 2; i >= 0; i--) {
                 const p = sides.left[i];
                 const prev = sides.left[i + 1];

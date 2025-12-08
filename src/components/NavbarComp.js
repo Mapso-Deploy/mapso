@@ -7,14 +7,28 @@ import JellyCanvas from './JellyCanvas'
 import CyclicLogo from './CyclicLogo'
 
 export default class NavbarComp extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { expanded: false };
+  }
+
+  handleToggle = (expanded) => {
+    this.setState({ expanded });
+  }
+
   render() {
     return (
       <div>
-        <JellyCanvas />
-        <Navbar expand="lg" className="Top-Nav jelly-mode" style={{ background: 'transparent', boxShadow: 'none', border: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
+        <JellyCanvas expanded={this.state.expanded} />
+        <Navbar
+          expand="lg"
+          className="Top-Nav jelly-mode"
+          style={{ background: 'transparent', boxShadow: 'none', border: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+          onToggle={this.handleToggle}
+        >
           <Container>
             {/* <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{color: "#4cffa0"}}><a href="www.mapso.co/products" className="Logo"><img src="https://cdn.glitch.global/f341fe61-4868-4d79-bad9-1a5804bea407/mapso.gif?v=1713577323625" alt="logo" style={{display: 'flex', alignItems:'left', height: '10vh', onLoad: 'fadeIn'}} /></a></NavLink></Navbar.Brand> */}
-            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><CyclicLogo mainLogo={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} /></a></NavLink></Navbar.Brand>
+            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><CyclicLogo mainLogo={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} onClick={() => window.location.href = '/'} /></a></NavLink></Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ms-auto px-5">

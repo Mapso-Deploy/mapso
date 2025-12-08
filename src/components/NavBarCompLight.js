@@ -7,13 +7,27 @@ import JellyCanvas from './JellyCanvas'
 import CyclicLogo from './CyclicLogo'
 
 export default class NavbarCompLight extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { expanded: false };
+  }
+
+  handleToggle = (expanded) => {
+    this.setState({ expanded });
+  }
+
   render() {
     return (
       <div>
-        <JellyCanvas isLightMode={true} />
-        <Navbar expand="lg" className="Top-Nav-Light jelly-mode" style={{ background: 'transparent', boxShadow: 'none', border: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
+        <JellyCanvas isLightMode={true} expanded={this.state.expanded} />
+        <Navbar
+          expand="lg"
+          className="Top-Nav-Light jelly-mode"
+          style={{ background: 'transparent', boxShadow: 'none', border: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+          onToggle={this.handleToggle}
+        >
           <Container>
-            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><CyclicLogo mainLogo={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} /></a></NavLink></Navbar.Brand>
+            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><CyclicLogo mainLogo={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} onClick={() => window.location.href = '/'} /></a></NavLink></Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="navbar-dark" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ms-auto px-5">
