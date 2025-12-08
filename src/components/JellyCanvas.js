@@ -310,21 +310,29 @@ const JellyCanvas = ({ isLightMode, expanded }) => {
                     p.oy = navY + h;
                 });
 
-                // Sides: Stretch based on ratio
-                sides.right.forEach(p => {
-                    if (p.ratio !== undefined) {
-                        p.oy = navY + (p.ratio * h);
-                    } else if (p.isCorner) {
-                        p.oy = navY + h - cornerRadius;
-                    }
-                });
-                sides.left.forEach(p => {
-                    if (p.ratio !== undefined) {
-                        p.oy = navY + (p.ratio * h);
-                    } else if (p.isCorner) {
-                        p.oy = navY + h - cornerRadius;
-                    }
-                });
+                // Sides: Stretch
+                // Distribute points evenly between top and bottom corners to preserve corner radius
+                // Top corner ends at navY + cornerRadius
+                // Bottom corner starts at navY + h - cornerRadius
+
+                const distributeSide = (sidePoints) => {
+                    const count = sidePoints.length;
+                    if (count === 0) return;
+
+                    const startY = navY + cornerRadius;
+                    const endY = navY + h - cornerRadius;
+                    const totalDist = endY - startY;
+
+                    sidePoints.forEach((p, i) => {
+                        // Calculate target Y based on index distribution
+                        // Ensure first point is exactly at startY and last at endY to keep corners round
+                        const t = count > 1 ? i / (count - 1) : 0;
+                        p.oy = startY + t * totalDist;
+                    });
+                };
+
+                distributeSide(sides.right);
+                distributeSide(sides.left);
             }
 
             // TIME-BASED DECAY & RESET
