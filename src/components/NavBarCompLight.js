@@ -27,7 +27,7 @@ export default class NavbarCompLight extends Component {
           onToggle={this.handleToggle}
         >
           <Container>
-            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><CyclicLogo mainLogo={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '7vh', onLoad: 'fadeIn' }} onClick={() => { if (window.location.pathname !== '/products' && window.location.pathname !== '/products/') window.location.href = '/products'; }} invertImages={true} /></a></NavLink></Navbar.Brand>
+            <Navbar.Brand href="#home"><NavLink to="/Products" activeStyle={{ color: "#4cffa0" }}><a href="www.mapso.co/products" className="Logo"><CyclicLogo mainLogo={logo} alt="logo" style={{ display: 'flex', alignItems: 'left', height: '60px', onLoad: 'fadeIn' }} onClick={() => { if (window.location.pathname !== '/products' && window.location.pathname !== '/products/') window.location.href = '/products'; }} invertImages={true} /></a></NavLink></Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="navbar-dark" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ms-auto px-5">

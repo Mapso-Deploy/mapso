@@ -879,7 +879,7 @@ form.formspree {
   display: flex;
   flex-direction: column;
   margin: auto;
-  margin-top: -25px;
+  margin-top: 25px;
   padding: 150px;
   z-index: 0;
 
@@ -1346,7 +1346,7 @@ a.product-info-link:hover {
     display: flex;
     flex-direction: column;
     margin: auto;
-    margin-top: 0px;
+    margin-top: 60px;
     padding: 100px;
   }
 
@@ -1688,8 +1688,10 @@ a.product-info-link:hover {
     display: flex;
     flex-direction: column;
     margin: auto;
-    margin-top: 25px;
+    margin-top: 215px;
     padding: 15px;
+    padding-left: 30px;
+    padding-right: 30px;
   }
 
   .formspree button {
