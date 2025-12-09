@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Landing from "./Landing";
-import Products from "./Products";
+import Matter from "./Matter"; // Renamed from Products
 import ProductsTest from "./ProductsTest"; // Three.js test implementation
 import About from "./About";
-import Contact from "./Contact";
+import Reach from "./Reach"; // Renamed from Contact
 import Explore from "./Explore";
-import Blog from "./Blog";
+import Channel from "./Channel"; // Renamed from Blog
 import ProductDetail from "./components/ProductDetail";
 import PasswordGate from "./components/PasswordGate"; // TEMPORARY - Remove when launching
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -47,13 +47,13 @@ function ProtectedRoutes() {
   // Render protected routes
   return (
     <Routes>
-      <Route path="/products" element={<Products />} />
+      <Route path="/matter" element={<Matter />} />
       <Route path="/products-test" element={<ProductsTest />} />
       <Route path="/explore" element={<Explore />} />
-      <Route path="/blog" element={<Blog />} />
+      <Route path="/channel" element={<Channel />} />
       <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/products/:productId" element={<ProductDetail />} />
+      <Route path="/reach" element={<Reach />} />
+      <Route path="/matter/:productId" element={<ProductDetail />} />
     </Routes>
   );
 }
@@ -61,12 +61,12 @@ function ProtectedRoutes() {
 function App() {
   return (
     <Router>
-    <div>
-      {/* <NavbarComp/> */}
-     <Routes>
-      <Route path="/*" element={<ProtectedRoutes />} />
-     </Routes>
-    </div>
+      <div>
+        {/* <NavbarComp/> */}
+        <Routes>
+          <Route path="/*" element={<ProtectedRoutes />} />
+        </Routes>
+      </div>
     </Router>
   );
 }

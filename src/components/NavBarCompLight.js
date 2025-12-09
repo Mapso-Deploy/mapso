@@ -16,8 +16,8 @@ const NavbarCompLight = () => {
   }
 
   const handleLogoClick = () => {
-    if (location.pathname !== '/products' && location.pathname !== '/products/') {
-      navigate('/products');
+    if (location.pathname !== '/matter' && location.pathname !== '/matter/') {
+      navigate('/matter');
     }
   };
 
@@ -45,9 +45,9 @@ const NavbarCompLight = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" className="navbar-dark" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto px-5">
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/products" className="Nav-Link-Light" activeStyle={{ color: "#4cffa0" }}>Products</NavLink></Nav.Link>
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/blog" className="Nav-Link-Light" activeStyle={{ color: "#4cffa0" }}>Blog</NavLink></Nav.Link>
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/contact" className="Nav-Link-Light" activeStyle={{ color: "#4cffa0" }}>Contact</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div"><NavLink to="/matter" className="Nav-Link-Light" style={({ isActive }) => isActive ? { color: "#4cffa0" } : undefined}>Matter</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div"><NavLink to="/channel" className="Nav-Link-Light" style={({ isActive }) => isActive ? { color: "#4cffa0" } : undefined}>Channel</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div"><NavLink to="/reach" className="Nav-Link-Light" style={({ isActive }) => isActive ? { color: "#4cffa0" } : undefined}>Reach</NavLink></Nav.Link>
             </Nav>
             <div className="cart-button">
               <button className="snipcart-checkout"> Cart <span className="snipcart-items-count"></span></button>

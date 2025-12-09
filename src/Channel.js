@@ -2,12 +2,12 @@ import React from 'react'
 import NavbarCompLight from "./components/NavBarCompLight.js";
 import Iframe from "./components/Iframe.js";
 
-export default function Blog() {
+export default function Channel() {
     return (
         <div>
-            <NavbarCompLight/>
+            <NavbarCompLight />
             <div className='blog'>
-            <Iframe />
+                <Iframe />
             </div>
         </div>
     )

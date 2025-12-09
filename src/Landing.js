@@ -56,8 +56,8 @@ export default function Landing() {
     setIsDesktopLogoHovered(true); // Ensure animation plays
 
     setTimeout(() => {
-      navigate('/Products');
-    }, 2100); // Wait for animation (~0.6s)
+      navigate('/matter');
+    }, 600); // Wait for animation (~0.6s)
   };
 
   const handleMobileLogoClick = () => {
@@ -67,8 +67,8 @@ export default function Landing() {
     setIsMobileLogoHovered(true); // Ensure animation plays
 
     setTimeout(() => {
-      navigate('/Products');
-    }, 2100); // Delay in milliseconds before navigating
+      navigate('/matter');
+    }, 600); // Wait for animation (~0.6s)
   };
 
   return (
