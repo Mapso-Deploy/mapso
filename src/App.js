@@ -4,7 +4,7 @@ import Landing from "./Landing";
 import Matter from "./Matter"; // Renamed from Products
 import ProductsTest from "./ProductsTest"; // Three.js test implementation
 import About from "./About";
-import Reach from "./Reach"; // Renamed from Contact
+import Signal from "./Signal"; // Renamed from Reach
 import Explore from "./Explore";
 import Channel from "./Channel"; // Renamed from Blog
 import ProductDetail from "./components/ProductDetail";
@@ -52,7 +52,7 @@ function ProtectedRoutes() {
       <Route path="/explore" element={<Explore />} />
       <Route path="/channel" element={<Channel />} />
       <Route path="/about" element={<About />} />
-      <Route path="/reach" element={<Reach />} />
+      <Route path="/signal" element={<Signal />} />
       <Route path="/matter/:productId" element={<ProductDetail />} />
     </Routes>
   );

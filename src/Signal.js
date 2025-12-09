@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm, ValidationError } from '@formspree/react';
 import NavbarComp from "./components/NavbarComp.js";
 
-function Reach() {
+function Signal() {
   const [state, handleSubmit] = useForm("xbjpvdnl");
   if (state.succeeded) {
     return <p>Thanks for your inquiry!</p>;
@@ -66,5 +66,5 @@ function Reach() {
     </>
   );
 }
-export default Reach;
+export default Signal;
 

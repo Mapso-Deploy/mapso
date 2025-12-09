@@ -637,13 +637,17 @@ h6 {
 .Nav-Link:hover,
 .Nav-Link:focus,
 .Nav-Link:active {
-  color: #4cffa0;
+  /* color: #4cffa0; */
+  color: inherit !important;
+  text-shadow: 0 0 10px rgba(76, 255, 160, 0.8), 0 0 20px rgba(76, 255, 160, 0.6), 0 0 30px rgba(76, 255, 160, 0.4);
 }
 
 .Nav-Link-Light:hover,
 .Nav-Link:focus,
 .Nav-Link:active {
-  color: #4cffa0;
+  /* color: #4cffa0; */
+  color: inherit !important;
+  text-shadow: 0 0 10px rgba(76, 255, 160, 0.8), 0 0 20px rgba(76, 255, 160, 0.6), 0 0 30px rgba(76, 255, 160, 0.4);
 }
 
 

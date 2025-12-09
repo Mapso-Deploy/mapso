@@ -45,9 +45,9 @@ const NavbarComp = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto px-5">
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/matter" className="Nav-Link" style={({ isActive }) => isActive ? { color: "#4cffa0" } : undefined}>Matter</NavLink></Nav.Link>
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/channel" className="Nav-Link" style={({ isActive }) => isActive ? { color: "#4cffa0" } : undefined}>Channel</NavLink></Nav.Link>
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/reach" className="Nav-Link" style={({ isActive }) => isActive ? { color: "#4cffa0" } : undefined}>Reach</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div"><NavLink to="/matter" className="Nav-Link" style={({ isActive }) => isActive ? { textShadow: "0 0 10px rgba(76, 255, 160, 0.8), 0 0 20px rgba(76, 255, 160, 0.6), 0 0 30px rgba(76, 255, 160, 0.4)" } : undefined}>Matter</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div"><NavLink to="/channel" className="Nav-Link" style={({ isActive }) => isActive ? { textShadow: "0 0 10px rgba(76, 255, 160, 0.8), 0 0 20px rgba(76, 255, 160, 0.6), 0 0 30px rgba(76, 255, 160, 0.4)" } : undefined}>Channel</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div"><NavLink to="/signal" className="Nav-Link" style={({ isActive }) => isActive ? { textShadow: "0 0 10px rgba(76, 255, 160, 0.8), 0 0 20px rgba(76, 255, 160, 0.6), 0 0 30px rgba(76, 255, 160, 0.4)" } : undefined}>Signal</NavLink></Nav.Link>
             </Nav>
             <div className="cart-button">
               <button className="snipcart-checkout"> Cart <span className="snipcart-items-count"></span></button>
