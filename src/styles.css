@@ -1056,7 +1056,7 @@ a.product-info-link:hover {
   min-width: 200px;
 }
 
-.buy-button.snipcart-checkout:hover {
+button.snipcart-checkout:hover {
   background: none;
   border: none;
   font-family: PragmaticaW01-ExtendedBook;

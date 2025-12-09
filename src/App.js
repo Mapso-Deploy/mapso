@@ -12,6 +12,8 @@ import PasswordGate from "./components/PasswordGate"; // TEMPORARY - Remove when
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import NavbarComp from "./components/NavbarComp.js";
 
+import Cursor from "./components/Cursor";
+
 // Component to handle route protection
 function ProtectedRoutes() {
   const location = useLocation();
@@ -31,7 +33,12 @@ function ProtectedRoutes() {
 
   // Always show landing page
   if (location.pathname === '/') {
-    return <Landing />;
+    return (
+      <>
+        <Cursor />
+        <Landing />
+      </>
+    );
   }
 
   // Show loading state briefly
@@ -41,20 +48,28 @@ function ProtectedRoutes() {
 
   // Show password gate for protected routes if not authenticated
   if (!isAuthenticated) {
-    return <PasswordGate onAuthenticated={handleAuthentication} />;
+    return (
+      <>
+        <Cursor />
+        <PasswordGate onAuthenticated={handleAuthentication} />
+      </>
+    );
   }
 
   // Render protected routes
   return (
-    <Routes>
-      <Route path="/matter" element={<Matter />} />
-      <Route path="/products-test" element={<ProductsTest />} />
-      <Route path="/explore" element={<Explore />} />
-      <Route path="/channel" element={<Channel />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/signal" element={<Signal />} />
-      <Route path="/matter/:productId" element={<ProductDetail />} />
-    </Routes>
+    <>
+      <Cursor />
+      <Routes>
+        <Route path="/matter" element={<Matter />} />
+        <Route path="/products-test" element={<ProductsTest />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/channel" element={<Channel />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/signal" element={<Signal />} />
+        <Route path="/matter/:productId" element={<ProductDetail />} />
+      </Routes>
+    </>
   );
 }
 
