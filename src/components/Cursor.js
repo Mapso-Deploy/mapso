@@ -18,19 +18,23 @@ export default function Cursor() {
     const crosshairY = useSpring(mouseY, crosshairConfig);
 
     useEffect(() => {
-        // 1. Force Body Style
-        const forceCursorHide = () => {
-            if (document.body.style.cursor !== 'none') {
-                document.body.style.setProperty('cursor', 'none', 'important');
-            }
-        };
-        forceCursorHide();
+        // Simple cursor suppression - inject style tag once
+        const styleId = 'cursor-kill-switch';
 
-        // 2. Observer to fight external overrides (like Snipcart)
-        const observer = new MutationObserver(() => {
-            forceCursorHide();
-        });
-        observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                html, body, * {
+                    cursor: none !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Set body cursor once
+        document.body.style.cursor = 'none';
+        document.documentElement.style.cursor = 'none';
 
         const moveCursor = (e) => {
             mouseX.set(e.clientX);
@@ -39,23 +43,14 @@ export default function Cursor() {
 
         const handleMouseOver = (e) => {
             const target = e.target;
-            // Exception for iframe content (user needs pointer there)
-            if (target.tagName.toLowerCase() === 'iframe') return;
-
-            const style = window.getComputedStyle(target);
             const clickable =
                 target.tagName.toLowerCase() === 'a' ||
                 target.tagName.toLowerCase() === 'button' ||
                 target.onclick ||
                 target.closest('a') ||
-                target.closest('button') ||
-                style.cursor === 'pointer';
+                target.closest('button');
 
-            if (clickable) {
-                setIsHovered(true);
-            } else {
-                setIsHovered(false);
-            }
+            setIsHovered(clickable);
         };
 
         window.addEventListener("mousemove", moveCursor);
@@ -64,8 +59,6 @@ export default function Cursor() {
         return () => {
             window.removeEventListener("mousemove", moveCursor);
             window.removeEventListener("mouseover", handleMouseOver);
-            observer.disconnect();
-            document.body.style.cursor = 'auto';
         };
     }, [mouseX, mouseY]);
 
@@ -105,16 +98,16 @@ export default function Cursor() {
           cursor: none !important;
         }
         /* Snipcart Override */
-        .snipcart-layout, .snipcart-base, .snipcart-modal__container {
+        .snipcart-layout, .snipcart-base, .snipcart-modal__container, .snipcart-modal__container * {
            cursor: none !important;
         }
         .snipcart-btn, .snipcart-checkout {
            cursor: none !important;
         }
 
-        /* Exception: Iframes need interaction */
+        /* NO EXCEPTIONS */
         iframe, iframe * {
-          cursor: auto !important;
+          cursor: none !important;
         }
       `}</style>
 
@@ -141,13 +134,13 @@ export default function Cursor() {
             >
                 <motion.div variants={tickVariants} style={{ width: "100%", height: "100%", position: 'relative' }}>
                     {/* Top Tick */}
-                    <div style={{ position: "absolute", top: 0, left: "50%", width: "1px", height: "12px", background: "white", transform: "translateX(-50%)" }}></div>
+                    <div style={{ position: "absolute", top: 0, left: "50%", width: "1px", height: "12px", background: "rgb(80, 80, 80)", transform: "translateX(-50%)" }}></div>
                     {/* Bottom Tick */}
-                    <div style={{ position: "absolute", bottom: 0, left: "50%", width: "1px", height: "12px", background: "white", transform: "translateX(-50%)" }}></div>
+                    <div style={{ position: "absolute", bottom: 0, left: "50%", width: "1px", height: "12px", background: "rgb(80, 80, 80)", transform: "translateX(-50%)" }}></div>
                     {/* Left Tick */}
-                    <div style={{ position: "absolute", left: 0, top: "50%", width: "12px", height: "1px", background: "white", transform: "translateY(-50%)" }}></div>
+                    <div style={{ position: "absolute", left: 0, top: "50%", width: "12px", height: "1px", background: "rgb(80, 80, 80)", transform: "translateY(-50%)" }}></div>
                     {/* Right Tick */}
-                    <div style={{ position: "absolute", right: 0, top: "50%", width: "12px", height: "1px", background: "white", transform: "translateY(-50%)" }}></div>
+                    <div style={{ position: "absolute", right: 0, top: "50%", width: "12px", height: "1px", background: "rgb(80, 80, 80)", transform: "translateY(-50%)" }}></div>
                 </motion.div>
             </motion.div>
 

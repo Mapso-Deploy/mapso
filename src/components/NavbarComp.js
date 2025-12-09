@@ -33,7 +33,7 @@ const NavbarComp = () => {
       >
         <Container>
           <Navbar.Brand>
-            <div className="Logo" style={{ cursor: 'pointer' }}>
+            <div className="Logo">
               <CyclicLogo
                 mainLogo={logo}
                 alt="logo"
@@ -45,9 +45,9 @@ const NavbarComp = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto px-5">
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/matter" className="Nav-Link" style={({ isActive }) => isActive ? { textShadow: "0 0 20px rgba(76, 255, 160, 0.9), 0 0 40px rgba(76, 255, 160, 0.6), 0 0 60px rgba(76, 255, 160, 0.4), 0 0 80px rgba(76, 255, 160, 0.2)" } : undefined}>Matter</NavLink></Nav.Link>
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/channel" className="Nav-Link" style={({ isActive }) => isActive ? { textShadow: "0 0 20px rgba(76, 255, 160, 0.9), 0 0 40px rgba(76, 255, 160, 0.6), 0 0 60px rgba(76, 255, 160, 0.4), 0 0 80px rgba(76, 255, 160, 0.2)" } : undefined}>Channel</NavLink></Nav.Link>
-              <Nav.Link className="Nav px-5" as="div"><NavLink to="/signal" className="Nav-Link" style={({ isActive }) => isActive ? { textShadow: "0 0 20px rgba(76, 255, 160, 0.9), 0 0 40px rgba(76, 255, 160, 0.6), 0 0 60px rgba(76, 255, 160, 0.4), 0 0 80px rgba(76, 255, 160, 0.2)" } : undefined}>Signal</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div" style={{ cursor: 'none' }}><NavLink to="/matter" className="Nav-Link" style={({ isActive }) => ({ cursor: 'none', ...(isActive ? { textShadow: "0 0 20px rgba(76, 255, 160, 0.9), 0 0 40px rgba(76, 255, 160, 0.6), 0 0 60px rgba(76, 255, 160, 0.4), 0 0 80px rgba(76, 255, 160, 0.2)" } : {}) })}>Matter</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div" style={{ cursor: 'none' }}><NavLink to="/channel" className="Nav-Link" style={({ isActive }) => ({ cursor: 'none', ...(isActive ? { textShadow: "0 0 20px rgba(76, 255, 160, 0.9), 0 0 40px rgba(76, 255, 160, 0.6), 0 0 60px rgba(76, 255, 160, 0.4), 0 0 80px rgba(76, 255, 160, 0.2)" } : {}) })}>Channel</NavLink></Nav.Link>
+              <Nav.Link className="Nav px-5" as="div" style={{ cursor: 'none' }}><NavLink to="/signal" className="Nav-Link" style={({ isActive }) => ({ cursor: 'none', ...(isActive ? { textShadow: "0 0 20px rgba(76, 255, 160, 0.9), 0 0 40px rgba(76, 255, 160, 0.6), 0 0 60px rgba(76, 255, 160, 0.4), 0 0 80px rgba(76, 255, 160, 0.2)" } : {}) })}>Signal</NavLink></Nav.Link>
             </Nav>
             <div className="cart-button">
               <button className="snipcart-checkout"> Cart <span className="snipcart-items-count"></span></button>

@@ -12,14 +12,14 @@ const PasswordGate = ({ onAuthenticated }) => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (password === CORRECT_PASSWORD) {
       localStorage.setItem('mapso_authenticated', 'true');
       onAuthenticated();
@@ -37,7 +37,7 @@ const PasswordGate = ({ onAuthenticated }) => {
   };
 
   return (
-    <div 
+    <div
       style={{
         position: 'fixed',
         top: 0,
@@ -53,10 +53,11 @@ const PasswordGate = ({ onAuthenticated }) => {
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 9999,
-        fontFamily: 'PragmaticaW01-ExtendedBook'
+        fontFamily: 'PragmaticaW01-ExtendedBook',
+        cursor: 'none'
       }}
     >
-      <div 
+      <div
         style={{
           position: 'relative',
           width: isMobile ? 'calc(100vw - 60px)' : 'calc(100vw - 30px)',
@@ -71,7 +72,8 @@ const PasswordGate = ({ onAuthenticated }) => {
           display: 'flex',
           alignItems: 'center',
           padding: '0 20px',
-          animation: isShaking ? 'shake 0.5s ease-in-out' : 'none'
+          animation: isShaking ? 'shake 0.5s ease-in-out' : 'none',
+          cursor: 'none'
         }}
       >
         <input
@@ -90,11 +92,13 @@ const PasswordGate = ({ onAuthenticated }) => {
             color: '#333',
             fontSize: '16px',
             fontFamily: 'PragmaticaW01-ExtendedBook',
-            textAlign: 'center'
+            textAlign: 'center',
+            cursor: 'none',
+            caretColor: '#333'
           }}
         />
       </div>
-      
+
       <style jsx>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }

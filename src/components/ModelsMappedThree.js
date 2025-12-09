@@ -67,7 +67,6 @@ export default function ModelsMappedThree(props) {
                                 <div
                                     onClick={() => props.onProductClick ? props.onProductClick(product) : navigate(`/products/${product.id}`)}
                                     className="product-info-link"
-                                    style={{ cursor: 'pointer' }}
                                 >
                                     <p className="product-info" style={{ whiteSpace: "pre" }}>
                                         {product.name} {'    '} ${product.price}
