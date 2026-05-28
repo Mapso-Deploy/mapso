@@ -19,11 +19,9 @@ const getReducedMotionPreference = () => {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 };
 
-const CyclicLogo = ({ mainLogo, alt, className = '', style, speed = 120, fadeDuration = 0, onClick, invertImages = false }) => {
-    const [activeIndex, setActiveIndex] = useState(0);
+const CyclicLogo = ({ mainLogo, alt, className = '', style, speed = 120, onClick, invertImages = false }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(getReducedMotionPreference);
-    const intervalRef = useRef(null);
     const clickTimeoutRef = useRef(null);
 
     // Handle manual trigger (e.g. mobile click)
@@ -82,30 +80,6 @@ const CyclicLogo = ({ mainLogo, alt, className = '', style, speed = 120, fadeDur
         });
     }, [logoSources]);
 
-    useEffect(() => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
-
-        if (!shouldCycle || logoSources.length <= 1) {
-            setActiveIndex(0);
-            return undefined;
-        }
-
-        setActiveIndex((currentIndex) => (currentIndex + 1) % logoSources.length);
-        intervalRef.current = setInterval(() => {
-            setActiveIndex((currentIndex) => (currentIndex + 1) % logoSources.length);
-        }, speed);
-
-        return () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-            }
-        };
-    }, [shouldCycle, logoSources.length, speed]);
-
     useEffect(() => () => {
         if (clickTimeoutRef.current) {
             clearTimeout(clickTimeoutRef.current);
@@ -115,12 +89,13 @@ const CyclicLogo = ({ mainLogo, alt, className = '', style, speed = 120, fadeDur
 
     const wrapperStyle = {
         ...style,
-        '--logo-cycle-fade-ms': `${fadeDuration}ms`
+        '--logo-cycle-step-ms': `${speed}ms`,
+        '--logo-cycle-duration-ms': `${speed * logoSources.length}ms`
     };
 
     return (
         <div
-            className={`cycling-logo ${className}`.trim()}
+            className={`cycling-logo ${shouldCycle ? 'is-cycling' : ''} ${className}`.trim()}
             style={wrapperStyle}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -129,17 +104,20 @@ const CyclicLogo = ({ mainLogo, alt, className = '', style, speed = 120, fadeDur
             onClick={handleClick}
         >
             {logoSources.map((src, index) => {
-                const isActive = index === activeIndex;
+                const isActive = !shouldCycle && index === 0;
                 const isSecondary = index !== 0;
-                const imageStyle = invertImages && isSecondary ? { filter: 'invert(1)' } : undefined;
+                const imageStyle = {
+                    ...(invertImages && isSecondary ? { filter: 'invert(1)' } : {}),
+                    '--logo-cycle-delay-ms': `${index * speed}ms`
+                };
 
                 return (
                     <img
                         key={src}
                         className={`cycling-logo__image${isActive ? ' is-active' : ''}`}
                         src={src}
-                        alt={isActive ? alt : ''}
-                        aria-hidden={!isActive}
+                        alt={index === 0 ? alt : ''}
+                        aria-hidden={index !== 0}
                         style={imageStyle}
                     />
                 );

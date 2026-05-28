@@ -299,11 +299,27 @@ body::-webkit-scrollbar {
   object-position: center;
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--logo-cycle-fade-ms, 220ms) ease;
 }
 
 .cycling-logo__image.is-active {
   opacity: 1;
+}
+
+.cycling-logo.is-cycling .cycling-logo__image {
+  animation: logo-cycle-frame var(--logo-cycle-duration-ms) steps(1, end) infinite;
+  animation-delay: var(--logo-cycle-delay-ms);
+}
+
+@keyframes logo-cycle-frame {
+  0%,
+  16.666% {
+    opacity: 1;
+  }
+
+  16.667%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .models-mapped {
