@@ -239,6 +239,73 @@ body::-webkit-scrollbar {
   display: none;
 }
 
+.landing-logo-hitbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(40vw, 720px);
+  min-width: 280px;
+  aspect-ratio: 1583 / 525;
+  max-height: 42vh;
+  overflow: hidden;
+  outline: none;
+}
+
+.landing-logo-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+}
+
+.landing-logo-static {
+  opacity: 1;
+}
+
+.landing-logo-animated {
+  opacity: 0;
+}
+
+.landing-logo-hitbox.is-hovered .landing-logo-static {
+  opacity: 0;
+}
+
+.landing-logo-hitbox.is-hovered .landing-logo-animated {
+  opacity: 1;
+}
+
+.cycling-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 130px;
+  height: 60px;
+  overflow: hidden;
+  outline: none;
+}
+
+.cycling-logo__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--logo-cycle-fade-ms, 220ms) ease;
+}
+
+.cycling-logo__image.is-active {
+  opacity: 1;
+}
+
 .models-mapped {
   display: inline-grid;
   grid-auto-rows: min-content;
@@ -1199,6 +1266,12 @@ button.snipcart-checkout:hover {
     display: none;
   }
 
+  .landing-logo-hitbox {
+    width: min(78vw, 600px);
+    min-width: 0;
+    max-height: 34vh;
+  }
+
   html,
   body {
     max-width: 100%;
@@ -1447,6 +1520,26 @@ button.snipcart-checkout:hover {
     -ms-animation: fadeIn 5s;
   }
 
+  .cycling-logo {
+    width: 118px;
+    height: 54px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-logo-image,
+  .cycling-logo__image {
+    transition: none;
+  }
+
+  .landing-logo-hitbox.is-hovered .landing-logo-static {
+    opacity: 1;
+  }
+
+  .landing-logo-hitbox.is-hovered .landing-logo-animated {
+    opacity: 0;
+  }
 }
 
 @media only screen and (max-width: 600px) {

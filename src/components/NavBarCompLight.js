@@ -36,7 +36,7 @@ const NavbarCompLight = () => {
               <CyclicLogo
                 mainLogo={logo}
                 alt="logo"
-                style={{ display: 'flex', alignItems: 'left', height: '60px', onLoad: 'fadeIn' }}
+                className="navbar-cycling-logo"
                 onClick={handleLogoClick}
                 invertImages={true}
               />

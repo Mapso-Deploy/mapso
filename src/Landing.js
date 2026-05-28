@@ -2,30 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 import bgImage from './clear-pale-cement-stucco-pattern.jpg'; // Import bg for preloading
+import staticLogo from './assets/mapso-energy-logo.png';
+import animatedLogo from './assets/mapso-energy-logo-hover.gif';
 
 export default function Landing() {
-  const [isDesktopLogoHovered, setIsDesktopLogoHovered] = useState(false);
-  const [isMobileLogoHovered, setIsMobileLogoHovered] = useState(false);
+  const [isLogoHovered, setIsLogoHovered] = useState(false);
 
   // State to lock animation ensuring it plays fully before navigation
-  const [isDesktopNavigating, setIsDesktopNavigating] = useState(false);
-  const [isMobileNavigating, setIsMobileNavigating] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Loading state for fade-in effect
   const [isLoaded, setIsLoaded] = useState(false);
 
   const navigate = useNavigate();
-
-  const staticLogo = "https://cdn.glitch.global/f341fe61-4868-4d79-bad9-1a5804bea407/Mapso%20(Energy)%204.png?v=1713580027089"; // Path to the static image of the logo
-  const animatedLogo = "https://cdn.glitch.global/f341fe61-4868-4d79-bad9-1a5804bea407/Mapso%20(Energy)%204.gif?v=1713577237481"; // Path to the animated GIF
-  const mobileStaticLogo = "https://cdn.glitch.global/f341fe61-4868-4d79-bad9-1a5804bea407/Mapso%20(Energy)%204.png?v=1713580027089"; // Static version for mobile logo
-  const mobileAnimatedLogo = "https://cdn.glitch.global/f341fe61-4868-4d79-bad9-1a5804bea407/Mapso%20(Energy)%204.gif?v=1713577237481"; // Animated version for mobile logo
+  const isLogoActive = isLogoHovered || isNavigating;
 
   useEffect(() => {
     // Preload images to prevent lag and sloppy background loading
     const imagesToPreload = [
+      staticLogo,
       animatedLogo,
-      mobileAnimatedLogo,
       bgImage
     ];
 
@@ -49,26 +45,22 @@ export default function Landing() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleDesktopLogoClick = () => {
-    if (isDesktopNavigating) return; // Prevent double clicks
+  const handleLogoClick = () => {
+    if (isNavigating) return; // Prevent double clicks
 
-    setIsDesktopNavigating(true);
-    setIsDesktopLogoHovered(true); // Ensure animation plays
+    setIsNavigating(true);
+    setIsLogoHovered(true); // Ensure animation plays
 
     setTimeout(() => {
       navigate('/matter');
     }, 600); // Wait for animation (~0.6s)
   };
 
-  const handleMobileLogoClick = () => {
-    if (isMobileNavigating) return;
-
-    setIsMobileNavigating(true);
-    setIsMobileLogoHovered(true); // Ensure animation plays
-
-    setTimeout(() => {
-      navigate('/matter');
-    }, 600); // Wait for animation (~0.6s)
+  const handleLogoKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleLogoClick();
+    }
   };
 
   return (
@@ -84,39 +76,39 @@ export default function Landing() {
         transition: 'opacity 1s ease-in-out'
       }}
     >
-      <div className="animated-gif-box2">
+      <div
+        className={`landing-logo-hitbox${isLogoActive ? ' is-hovered' : ''}`}
+        role="button"
+        tabIndex={0}
+        aria-label="Enter Mapso"
+        onMouseEnter={() => setIsLogoHovered(true)}
+        onMouseLeave={() => {
+          if (!isNavigating) setIsLogoHovered(false);
+        }}
+        onFocus={() => setIsLogoHovered(true)}
+        onBlur={() => {
+          if (!isNavigating) setIsLogoHovered(false);
+        }}
+        onTouchStart={() => setIsLogoHovered(true)}
+        onTouchEnd={() => {
+          if (!isNavigating) setIsLogoHovered(false);
+        }}
+        onClick={handleLogoClick}
+        onKeyDown={handleLogoKeyDown}
+      >
         <img
-          className="animated-gif2"
-          src={isDesktopLogoHovered ? animatedLogo : staticLogo}
-          alt="Desktop logo"
-          onMouseEnter={() => setIsDesktopLogoHovered(true)}
-          onMouseLeave={() => {
-            if (!isDesktopNavigating) setIsDesktopLogoHovered(false);
-          }}
-          onTouchStart={() => setIsDesktopLogoHovered(true)}
-          onTouchEnd={() => {
-            if (!isDesktopNavigating) setIsDesktopLogoHovered(false);
-          }}
-          onClick={handleDesktopLogoClick}
+          className="landing-logo-image landing-logo-static"
+          src={staticLogo}
+          alt="Mapso logo"
         />
-      </div>
-      <div className="mobile-logo-box" style={{ overflow: 'hidden' }}>
-        <img
-          src={isMobileLogoHovered ? mobileAnimatedLogo : mobileStaticLogo}
-          alt="Mobile logo"
-          onClick={handleMobileLogoClick}
-          // Added mouse handlers for Tablet/cursor support on small screens
-          onMouseEnter={() => setIsMobileLogoHovered(true)}
-          onMouseLeave={() => {
-            if (!isMobileNavigating) setIsMobileLogoHovered(false);
-          }}
-          // Handle Touch
-          onTouchStart={() => setIsMobileLogoHovered(true)}
-          onTouchEnd={() => {
-            if (!isMobileNavigating) setIsMobileLogoHovered(false);
-          }}
-          style={{ width: '600px', overflow: 'hidden', paddingBottom: '35px' }}
-        />
+        {isLogoActive && (
+          <img
+            className="landing-logo-image landing-logo-animated"
+            src={animatedLogo}
+            alt=""
+            aria-hidden="true"
+          />
+        )}
       </div>
     </div>
   );
