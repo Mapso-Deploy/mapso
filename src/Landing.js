@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
-import bgImage from './clear-pale-cement-stucco-pattern.jpg'; // Import bg for preloading
+import cityBackground from './assets/mapso-city-background.png';
+import desktopFog from './assets/mapso-fog-desktop.mp4';
+import mobileFog from './assets/mapso-fog-mobile.mp4';
 import staticLogo from './assets/mapso-energy-logo.png';
 import animatedLogo from './assets/mapso-energy-logo-hover.gif';
 
@@ -13,6 +15,10 @@ export default function Landing() {
 
   // Loading state for fade-in effect
   const [isLoaded, setIsLoaded] = useState(false);
+  const [heroMedia, setHeroMedia] = useState(() => ({
+    isMobile: window.matchMedia('(max-width: 600px)').matches,
+    prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }));
 
   const navigate = useNavigate();
   const isLogoActive = isLogoHovered || isNavigating;
@@ -22,7 +28,7 @@ export default function Landing() {
     const imagesToPreload = [
       staticLogo,
       animatedLogo,
-      bgImage
+      cityBackground
     ];
 
     const preloadImage = (src) => {
@@ -45,6 +51,23 @@ export default function Landing() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 600px)');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateHeroMedia = () => setHeroMedia({
+      isMobile: mobileQuery.matches,
+      prefersReducedMotion: reducedMotionQuery.matches
+    });
+
+    mobileQuery.addEventListener('change', updateHeroMedia);
+    reducedMotionQuery.addEventListener('change', updateHeroMedia);
+
+    return () => {
+      mobileQuery.removeEventListener('change', updateHeroMedia);
+      reducedMotionQuery.removeEventListener('change', updateHeroMedia);
+    };
+  }, []);
+
   const handleLogoClick = () => {
     if (isNavigating) return; // Prevent double clicks
 
@@ -65,17 +88,30 @@ export default function Landing() {
 
   return (
     <div
-      className="Logo"
+      className="Logo landing-hero"
       style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        overflow: 'hidden',
         opacity: isLoaded ? 1 : 0,
         transition: 'opacity 1s ease-in-out'
       }}
     >
+      <img
+        className="landing-hero__background"
+        src={cityBackground}
+        alt=""
+        aria-hidden="true"
+      />
+      {!heroMedia.prefersReducedMotion && (
+        <video
+          className="landing-hero__fog"
+          src={heroMedia.isMobile ? mobileFog : desktopFog}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        />
+      )}
       <div
         className={`landing-logo-hitbox${isLogoActive ? ' is-hovered' : ''}`}
         role="button"

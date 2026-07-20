@@ -239,8 +239,44 @@ body::-webkit-scrollbar {
   display: none;
 }
 
+.landing-hero {
+  --landing-fog-opacity: 0.62;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #171720;
+}
+
+.landing-hero__background,
+.landing-hero__fog {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  pointer-events: none;
+}
+
+.landing-hero__background {
+  z-index: 0;
+}
+
+.landing-hero__fog {
+  z-index: 1;
+  opacity: var(--landing-fog-opacity);
+  mix-blend-mode: screen;
+}
+
 .landing-logo-hitbox {
   position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -250,6 +286,19 @@ body::-webkit-scrollbar {
   max-height: 42vh;
   overflow: hidden;
   outline: none;
+}
+
+@media (min-width: 601px) and (hover: hover) and (pointer: fine) {
+  .landing-logo-hitbox {
+    filter: blur(1.5px);
+    transition: filter 280ms ease;
+  }
+
+  .landing-logo-hitbox:hover,
+  .landing-logo-hitbox:focus,
+  .landing-logo-hitbox.is-hovered {
+    filter: blur(0);
+  }
 }
 
 .landing-logo-image {
