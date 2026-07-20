@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import Landing from "./Landing";
 import Matter from "./Matter"; // Renamed from Products
 import ProductsTest from "./ProductsTest"; // Three.js test implementation
@@ -81,6 +82,7 @@ function App() {
         <Routes>
           <Route path="/*" element={<ProtectedRoutes />} />
         </Routes>
+        <Analytics />
       </div>
     </Router>
   );
