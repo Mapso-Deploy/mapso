@@ -78,10 +78,10 @@ function App() {
   return (
     <Router>
       <div>
+      <Analytics />
         {/* <NavbarComp/> */}
         <Routes>
           <Route path="/*" element={<ProtectedRoutes />} />
-          <Analytics />
         </Routes>
       </div>
     </Router>
