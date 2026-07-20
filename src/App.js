@@ -1,4 +1,3 @@
-import { Analytics } from '@vercel/analytics/next';
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Landing from "./Landing";
@@ -78,7 +77,6 @@ function App() {
   return (
     <Router>
       <div>
-      <Analytics />
         {/* <NavbarComp/> */}
         <Routes>
           <Route path="/*" element={<ProtectedRoutes />} />
