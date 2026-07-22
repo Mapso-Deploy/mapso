@@ -251,9 +251,11 @@ body::-webkit-scrollbar {
   height: 100svh;
   overflow: hidden;
   background: #171720;
+  transition: opacity 320ms ease-out;
 }
 
 .landing-hero__background,
+.landing-hero__fog-fallback,
 .landing-hero__fog {
   position: absolute;
   inset: 0;
@@ -266,12 +268,28 @@ body::-webkit-scrollbar {
 
 .landing-hero__background {
   z-index: 0;
+  transform: scale(1.002);
+  transition: filter 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.landing-hero__fog-fallback,
 .landing-hero__fog {
   z-index: 1;
-  opacity: var(--landing-fog-opacity);
   mix-blend-mode: screen;
+  transition: opacity 180ms ease-out;
+}
+
+.landing-hero__fog-fallback {
+  opacity: var(--landing-fog-opacity);
+}
+
+.landing-hero__fog-fallback.is-hidden,
+.landing-hero__fog {
+  opacity: 0;
+}
+
+.landing-hero__fog.is-playing {
+  opacity: var(--landing-fog-opacity);
 }
 
 .landing-logo-hitbox {
@@ -286,19 +304,25 @@ body::-webkit-scrollbar {
   max-height: 42vh;
   overflow: hidden;
   outline: none;
+  filter: blur(1.5px) drop-shadow(0 0 12px rgba(214, 126, 235, 0.42));
+  transition: filter 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (min-width: 601px) and (hover: hover) and (pointer: fine) {
-  .landing-logo-hitbox {
-    filter: blur(1.5px);
-    transition: filter 280ms ease;
-  }
-
+@media (hover: hover) and (pointer: fine) {
   .landing-logo-hitbox:hover,
   .landing-logo-hitbox:focus,
   .landing-logo-hitbox.is-hovered {
     filter: blur(0);
   }
+}
+
+.landing-hero.is-logo-active .landing-hero__background {
+  filter: blur(2.25px);
+  transform: scale(1.012);
+}
+
+.landing-hero.is-logo-active .landing-logo-hitbox {
+  filter: blur(0) drop-shadow(0 0 0 rgba(214, 126, 235, 0));
 }
 
 .landing-logo-image {
@@ -1593,6 +1617,9 @@ button.snipcart-checkout:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .landing-hero,
+  .landing-hero__background,
+  .landing-logo-hitbox,
   .landing-logo-image,
   .cycling-logo__image {
     transition: none;
@@ -1608,6 +1635,19 @@ button.snipcart-checkout:hover {
 }
 
 @media only screen and (max-width: 600px) {
+  .landing-hero__fog-fallback,
+  .landing-hero__fog {
+    inset: 0 auto 0 50%;
+    width: 300%;
+    height: 100%;
+    transform: translateX(-50%);
+    object-fit: fill;
+  }
+
+  .landing-logo-hitbox {
+    width: min(84vw, 520px);
+    filter: blur(1.25px) drop-shadow(0 0 10px rgba(214, 126, 235, 0.4));
+  }
   /*Big smartphones [426px -> 600px]*/
   /* body {
         max-width: 100%;

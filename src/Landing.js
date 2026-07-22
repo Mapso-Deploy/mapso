@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 import cityBackground from './assets/mapso-city-background.png';
 import desktopFog from './assets/mapso-fog-desktop.mp4';
 import mobileFog from './assets/mapso-fog-mobile.mp4';
+import fogFallback from './assets/mapso-fog-fallback.webp';
 import staticLogo from './assets/mapso-energy-logo.png';
 import animatedLogo from './assets/mapso-energy-logo-hover.gif';
 
@@ -13,8 +14,10 @@ export default function Landing() {
   // State to lock animation ensuring it plays fully before navigation
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Loading state for fade-in effect
-  const [isLoaded, setIsLoaded] = useState(false);
+  const fogRef = useRef(null);
+  const [backgroundReady, setBackgroundReady] = useState(false);
+  const [fogFallbackReady, setFogFallbackReady] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [heroMedia, setHeroMedia] = useState(() => ({
     isMobile: window.matchMedia('(max-width: 600px)').matches,
     prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -22,14 +25,10 @@ export default function Landing() {
 
   const navigate = useNavigate();
   const isLogoActive = isLogoHovered || isNavigating;
+  const isSceneReady = backgroundReady && (heroMedia.prefersReducedMotion || fogFallbackReady);
 
   useEffect(() => {
-    // Preload images to prevent lag and sloppy background loading
-    const imagesToPreload = [
-      staticLogo,
-      animatedLogo,
-      cityBackground
-    ];
+    const imagesToPreload = [staticLogo, animatedLogo];
 
     const preloadImage = (src) => {
       return new Promise((resolve, reject) => {
@@ -40,15 +39,17 @@ export default function Landing() {
       });
     };
 
-    Promise.all(imagesToPreload.map(preloadImage))
-      .then(() => {
-        // Once essential images are loaded, trigger fade-in
-        setIsLoaded(true);
-      });
+    imagesToPreload.forEach(preloadImage);
+  }, []);
 
-    // Fallback: If loading takes too long, show content anyway
-    const timer = setTimeout(() => setIsLoaded(true), 2000);
-    return () => clearTimeout(timer);
+  const startFog = useCallback(() => {
+    const video = fogRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    const playPromise = video.play();
+    if (playPromise) playPromise.catch(() => setVideoPlaying(false));
   }, []);
 
   useEffect(() => {
@@ -74,9 +75,10 @@ export default function Landing() {
     setIsNavigating(true);
     setIsLogoHovered(true); // Ensure animation plays
 
+    const navigationDelay = heroMedia.isMobile ? 2200 : 600;
     setTimeout(() => {
       navigate('/matter');
-    }, 600); // Wait for animation (~0.6s)
+    }, navigationDelay);
   };
 
   const handleLogoKeyDown = (event) => {
@@ -88,10 +90,9 @@ export default function Landing() {
 
   return (
     <div
-      className="Logo landing-hero"
+      className={`Logo landing-hero${isLogoActive ? ' is-logo-active' : ''}${isSceneReady ? ' is-ready' : ''}`}
       style={{
-        opacity: isLoaded ? 1 : 0,
-        transition: 'opacity 1s ease-in-out'
+        opacity: isSceneReady ? 1 : 0
       }}
     >
       <img
@@ -99,18 +100,33 @@ export default function Landing() {
         src={cityBackground}
         alt=""
         aria-hidden="true"
+        onLoad={() => setBackgroundReady(true)}
       />
       {!heroMedia.prefersReducedMotion && (
-        <video
-          className="landing-hero__fog"
-          src={heroMedia.isMobile ? mobileFog : desktopFog}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
-        />
+        <>
+          <img
+            className={`landing-hero__fog-fallback${videoPlaying ? ' is-hidden' : ''}`}
+            src={fogFallback}
+            alt=""
+            aria-hidden="true"
+            onLoad={() => setFogFallbackReady(true)}
+          />
+          <video
+            className={`landing-hero__fog${videoPlaying ? ' is-playing' : ''}`}
+            ref={fogRef}
+            src={heroMedia.isMobile ? mobileFog : desktopFog}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            onCanPlay={startFog}
+            onLoadedData={startFog}
+            onPlaying={() => setVideoPlaying(true)}
+            onPause={() => setVideoPlaying(false)}
+          />
+        </>
       )}
       <div
         className={`landing-logo-hitbox${isLogoActive ? ' is-hovered' : ''}`}
